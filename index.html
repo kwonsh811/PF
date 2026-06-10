@@ -29,13 +29,13 @@
     waveSpeed:      num('speed', 0.0133), // 배경 물결 흐르는 속도 (느리게)
     waveFrequency:  num('freq', 3.0),      // 물결 패턴 주파수
     waveAmplitude:  num('amp', 0.3),       // 물결 진폭
-    colorNum:       num('colors', 4.0),    // 디더링 색 단계 수
-    pixelSize:      num('pixel', 2.0),     // 도트 크기 (클수록 거친 픽셀)
+    colorNum:       num('colors', 3.0),    // 디더링 색 단계 수
+    pixelSize:      num('pixel', 2.67),     // 도트 크기 (4의 1.5배 축소)
     mouseRadius:    num('mradius', 0.0),   // 커서 주변 음영 반경 (0이면 끔)
-    rippleSpeed:    num('rspeed', 0.5),    // 파장 퍼지는 속도
+    rippleSpeed:    num('rspeed', 0.85),   // 파장 퍼지는 속도 (멀리 퍼지게)
     rippleStrength: num('rstrength', 1.0), // 파장 출렁임 세기(전체 배율)
     ringThickness:  num('rthick', 18.0),   // 링 두께 (클수록 얇음)
-    ringDecay:      num('rdecay', 4.6),    // 총지름 (클수록 작음)
+    ringDecay:      num('rdecay', 1.8),    // 총지름 (작을수록 멀리 퍼짐)
     wobble:         num('rwobble', 0.11),  // 꿀렁임 세기
     ringGlow:       num('rglow', 3.2),     // 클릭 링 밝기
     rippleColor:    [ num('rr', 0.8), num('rg', 0.95), num('rb', 1.0) ], // 인터랙션 발광 색(밝은 하늘색)
@@ -259,8 +259,8 @@
   const nowSec = () => (performance.now() - t0) / 1000;
 
   /* 클릭 파장 지름 랜덤 범위 (URL ?rmin= &rmax= 로 조절) */
-  const R_MIN = num('rmin', 0.55);
-  const R_MAX = num('rmax', 1.7);
+  const R_MIN = num('rmin', 0.45);
+  const R_MAX = num('rmax', 1.1);
 
   /* 화면 좌표(px) → 셰이더가 쓰는 디바이스 픽셀 좌표
      scale 을 안 주면 랜덤 지름으로 생성 */
