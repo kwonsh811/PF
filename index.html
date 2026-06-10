@@ -33,7 +33,10 @@
     pixelSize:      num('pixel', 2.0),     // 도트 크기 (클수록 거친 픽셀)
     mouseRadius:    num('mradius', 0.0),   // 커서 주변 음영 반경 (0이면 끔)
     rippleSpeed:    num('rspeed', 0.5),    // 파장 퍼지는 속도
-    rippleStrength: num('rstrength', 1.0), // 파장 출렁임 세기
+    rippleStrength: num('rstrength', 1.0), // 파장 출렁임 세기(전체 배율)
+    ringThickness:  num('rthick', 18.0),   // 링 두께 (클수록 얇음)
+    ringDecay:      num('rdecay', 4.6),    // 총지름 (클수록 작음)
+    wobble:         num('rwobble', 0.11),  // 꿀렁임 세기
     rippleColor:    [ num('rr', 0.8), num('rg', 0.95), num('rb', 1.0) ], // 인터랙션 발광 색(밝은 하늘색)
     ambient:        q.get('ambient') !== '0' // 가끔 저절로 생기는 잔잔한 파장
   };
@@ -59,6 +62,7 @@
     uniform vec4  ripples[${MAX}];      /* x,y(px), 시작시각, 세기 */
     uniform float rippleScale[${MAX}];  /* 파장별 지름 배율 (랜덤) */
     uniform float rippleSpeed, rippleStrength;
+    uniform float ringThickness, ringDecay, wobble;
     uniform vec3  rippleColor;           /* 인터랙션 발광 색 */
     uniform vec2  cursorPos;              /* 부드럽게 따라오는 커서 위치(px) */
     uniform float cursorGlow;             /* 커서 움직임 세기 0~1 */
@@ -156,9 +160,9 @@
         float d = length(dir);
         dir /= max(d, 1e-4);
         float front = age * rippleSpeed * rippleScale[i];  /* 배율로 지름이 매번 달라짐 */
-        float band  = exp(-pow((d - front) * 8.0, 2.0));
-        float env   = band * exp(-age * 3.6) * r.w * rippleStrength;  /* 클릭 파장 반경 추가 1.5배 축소 */
-        ruv  += dir * sin((d - front) * 30.0) * env * 0.06;
+        float band  = exp(-pow((d - front) * ringThickness, 2.0));  /* 링 두께 (클수록 얇음) */
+        float env   = band * exp(-age * ringDecay) * r.w * rippleStrength;  /* ringDecay 클수록 총지름 작음 */
+        ruv  += dir * sin((d - front) * 30.0) * env * wobble;  /* wobble = 꿀렁임 세기 */
         glow += env;
       }
 
@@ -224,6 +228,9 @@
   gl.uniform1f(U('mouseRadius'), CONFIG.mouseRadius);
   gl.uniform1f(U('rippleSpeed'), CONFIG.rippleSpeed);
   gl.uniform1f(U('rippleStrength'), CONFIG.rippleStrength);
+  gl.uniform1f(U('ringThickness'), CONFIG.ringThickness);
+  gl.uniform1f(U('ringDecay'), CONFIG.ringDecay);
+  gl.uniform1f(U('wobble'), CONFIG.wobble);
   gl.uniform3fv(U('rippleColor'), CONFIG.rippleColor);
 
   let W, H, DPR;
