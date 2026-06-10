@@ -30,14 +30,14 @@
     waveFrequency:  num('freq', 3.0),      // 물결 패턴 주파수
     waveAmplitude:  num('amp', 0.3),       // 물결 진폭
     colorNum:       num('colors', 3.0),    // 디더링 색 단계 수
-    pixelSize:      num('pixel', 5.34),     // 도트 크기 (2.67의 2배)
+    pixelSize:      num('pixel', 3.0),     // 도트 크기
     mouseRadius:    num('mradius', 0.0),   // 커서 주변 음영 반경 (0이면 끔)
     rippleSpeed:    num('rspeed', 0.85),   // 파장 퍼지는 속도 (멀리 퍼지게)
     rippleStrength: num('rstrength', 1.0), // 파장 출렁임 세기(전체 배율)
-    ringThickness:  num('rthick', 18.0),   // 링 두께 (클수록 얇음)
-    ringDecay:      num('rdecay', 1.8),    // 총지름 (작을수록 멀리 퍼짐)
+    ringThickness:  num('rthick', 9.0),    // 링 두께 기준 (작을수록 두꺼움, 파동 크기에 비례)
+    ringDecay:      num('rdecay', 2.8),    // 총지름 (작을수록 멀리 퍼짐)
     wobble:         num('rwobble', 0.11),  // 꿀렁임 세기
-    ringGlow:       num('rglow', 1.9),     // 클릭 링 밝기
+    ringGlow:       num('rglow', 1.2),     // 클릭 링 밝기
     rippleColor:    [ num('rr', 0.8), num('rg', 0.95), num('rb', 1.0) ], // 인터랙션 발광 색(밝은 하늘색)
     ambient:        q.get('ambient') !== '0' // 가끔 저절로 생기는 잔잔한 파장
   };
@@ -163,7 +163,8 @@
         float d = length(dir);
         dir /= max(d, 1e-4);
         float front = age * rippleSpeed * rippleScale[i];  /* 배율로 지름이 매번 달라짐 */
-        float band  = exp(-pow((d - front) * ringThickness, 2.0));  /* 링 두께 (클수록 얇음) */
+        float thick = ringThickness / max(rippleScale[i], 0.05);  /* 큰 파동=두꺼운 링, 작은 파동=얇은 링 */
+        float band  = exp(-pow((d - front) * thick, 2.0));
         float env   = band * exp(-age * ringDecay) * r.w * rippleStrength;  /* ringDecay 클수록 총지름 작음 */
         ruv  += dir * sin((d - front) * 30.0) * env * wobble;  /* wobble = 꿀렁임 세기 */
         ring += env;
@@ -259,8 +260,8 @@
   const nowSec = () => (performance.now() - t0) / 1000;
 
   /* 클릭 파장 지름 랜덤 범위 (URL ?rmin= &rmax= 로 조절) */
-  const R_MIN = num('rmin', 0.45);
-  const R_MAX = num('rmax', 1.1);
+  const R_MIN = num('rmin', 0.2);
+  const R_MAX = num('rmax', 0.7);
 
   /* 화면 좌표(px) → 셰이더가 쓰는 디바이스 픽셀 좌표
      scale 을 안 주면 랜덤 지름으로 생성 */
