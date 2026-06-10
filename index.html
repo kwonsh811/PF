@@ -57,6 +57,7 @@
     uniform float colorNum, pixelSize, mouseRadius;
     uniform vec2  mousePos;
     uniform vec4  ripples[${MAX}];      /* x,y(px), 시작시각, 세기 */
+    uniform float rippleScale[${MAX}];  /* 파장별 지름 배율 (랜덤) */
     uniform float rippleSpeed, rippleStrength;
     uniform vec3  rippleColor;           /* 인터랙션 발광 색 */
     uniform vec2  cursorPos;              /* 부드럽게 따라오는 커서 위치(px) */
@@ -154,7 +155,7 @@
         vec2 dir = uv - c;
         float d = length(dir);
         dir /= max(d, 1e-4);
-        float front = age * rippleSpeed;
+        float front = age * rippleSpeed * rippleScale[i];  /* 배율로 지름이 매번 달라짐 */
         float band  = exp(-pow((d - front) * 8.0, 2.0));
         float env   = band * exp(-age * 3.6) * r.w * rippleStrength;  /* 클릭 파장 반경 추가 1.5배 축소 */
         ruv  += dir * sin((d - front) * 30.0) * env * 0.06;
@@ -211,6 +212,7 @@
   const U = n => gl.getUniformLocation(prog, n);
   const uRes = U('resolution'), uTime = U('time'),
         uMouse = U('mousePos'), uRipples = U('ripples'),
+        uRipScale = U('rippleScale'),
         uCursorPos = U('cursorPos'), uCursorGlow = U('cursorGlow');
 
   gl.uniform3fv(U('waveColor'), CONFIG.waveColor);
@@ -238,18 +240,26 @@
 
   /* ── 리플 슬롯 (순환 재사용) ── */
   const rip = new Float32Array(MAX * 4);
+  const ripScale = new Float32Array(MAX).fill(1);   /* 파장별 지름 배율 */
   for(let i = 0; i < MAX; i++) rip[i*4 + 2] = -1;
   let slot = 0;
   const t0 = performance.now();
   const nowSec = () => (performance.now() - t0) / 1000;
 
-  /* 화면 좌표(px) → 셰이더가 쓰는 디바이스 픽셀 좌표 */
-  function spawn(clientX, clientY, strength){
+  /* 클릭 파장 지름 랜덤 범위 (URL ?rmin= &rmax= 로 조절) */
+  const R_MIN = num('rmin', 0.55);
+  const R_MAX = num('rmax', 1.7);
+
+  /* 화면 좌표(px) → 셰이더가 쓰는 디바이스 픽셀 좌표
+     scale 을 안 주면 랜덤 지름으로 생성 */
+  function spawn(clientX, clientY, strength, scale){
     const i = slot * 4;
     rip[i]     = clientX * DPR;
     rip[i + 1] = clientY * DPR;
     rip[i + 2] = nowSec();
     rip[i + 3] = strength;
+    ripScale[slot] = (scale != null) ? scale
+                   : R_MIN + Math.random() * (R_MAX - R_MIN);
     slot = (slot + 1) % MAX;
   }
 
@@ -303,6 +313,7 @@
     }
     gl.uniform1f(uTime, nowSec());
     gl.uniform4fv(uRipples, rip);
+    gl.uniform1fv(uRipScale, ripScale);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(loop);
   }
