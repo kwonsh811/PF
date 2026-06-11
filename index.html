@@ -194,7 +194,7 @@
       vec3 col;
       if(lightMode > 0.5){
         col = mix(vec3(1.0), waveColor, f);         /* 흰 배경 + 민트 무늬 */
-        col -= rippleColor * inten * 0.9;           /* 인터랙션은 어둡게 */
+        col += (vec3(1.0) - col) * inten;           /* 인터랙션은 흰빛으로 밝게 */
         col = clamp(col, 0.0, 1.0);
       } else {
         col = mix(vec3(0.0), waveColor, f);         /* 검은 배경 + 민트 무늬 */
