@@ -190,7 +190,7 @@
         f -= 0.5 * (1.0 - smoothstep(0.0, mouseRadius, dist));
       }
 
-      float inten = glow * 1.2 + ring * ringGlow;   /* 인터랙션 발광량 */
+      float inten = glow * 1.7 + ring * ringGlow;   /* 인터랙션 발광량 (커서 게인 1.2→1.7) */
       vec3 col;
       if(lightMode > 0.5){
         col = mix(vec3(1.0), waveColor, f);         /* 흰 배경 + 민트 무늬 */
