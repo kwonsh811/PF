@@ -38,6 +38,7 @@
     ringDecay:      num('rdecay', 2.8),    // 총지름 (작을수록 멀리 퍼짐)
     wobble:         num('rwobble', 0.11),  // 꿀렁임 세기
     ringGlow:       num('rglow', 1.2),     // 클릭 링 밝기
+    lightMode:      q.get('light') === '1' ? 1 : 0, // 흰 배경 모드 (?light=1)
     rippleColor:    [ num('rr', 0.8), num('rg', 0.95), num('rb', 1.0) ], // 인터랙션 발광 색(밝은 하늘색)
     ambient:        q.get('ambient') !== '0' // 가끔 저절로 생기는 잔잔한 파장
   };
@@ -65,6 +66,7 @@
     uniform float rippleSpeed, rippleStrength;
     uniform float ringThickness, ringDecay, wobble;
     uniform float ringGlow;
+    uniform float lightMode;
     uniform vec3  rippleColor;           /* 인터랙션 발광 색 */
     uniform vec2  cursorPos;              /* 부드럽게 따라오는 커서 위치(px) */
     uniform float cursorGlow;             /* 커서 움직임 세기 0~1 */
@@ -188,10 +190,16 @@
         f -= 0.5 * (1.0 - smoothstep(0.0, mouseRadius, dist));
       }
 
-      vec3 col = mix(vec3(0.0), waveColor, f);
-      /* 인터랙션 발광 — 밝은 하늘색(거의 흰빛)을 따로 더해 배경과 확실히 구분 */
-      col += rippleColor * glow * 1.2;          /* 커서 웨이크 */
-      col += rippleColor * ring * ringGlow;     /* 클릭 링 (밝게) */
+      float inten = glow * 1.2 + ring * ringGlow;   /* 인터랙션 발광량 */
+      vec3 col;
+      if(lightMode > 0.5){
+        col = mix(vec3(1.0), waveColor, f);         /* 흰 배경 + 민트 무늬 */
+        col -= rippleColor * inten * 0.9;           /* 인터랙션은 어둡게 */
+        col = clamp(col, 0.0, 1.0);
+      } else {
+        col = mix(vec3(0.0), waveColor, f);         /* 검은 배경 + 민트 무늬 */
+        col += rippleColor * inten;                 /* 인터랙션은 밝게 */
+      }
       col = dither(fragPx, col);
       gl_FragColor = vec4(col, 1.0);
     }
@@ -237,6 +245,8 @@
   gl.uniform1f(U('ringDecay'), CONFIG.ringDecay);
   gl.uniform1f(U('wobble'), CONFIG.wobble);
   gl.uniform1f(U('ringGlow'), CONFIG.ringGlow);
+  gl.uniform1f(U('lightMode'), CONFIG.lightMode);
+  if(CONFIG.lightMode) document.body.style.background = '#fff';
   gl.uniform3fv(U('rippleColor'), CONFIG.rippleColor);
 
   let W, H, DPR;
